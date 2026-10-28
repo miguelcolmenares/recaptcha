@@ -1,0 +1,110 @@
+{
+  "site": {
+    "name": "recaptcha-next",
+    "description": "Google reCAPTCHA v3 for React and Next.js: client token generation and server-side verification.",
+    "url": "https://miguelcolmenares.github.io",
+    "base": "/recaptcha-next/",
+    "repository": "https://github.com/miguelcolmenares/recaptcha-next",
+    "license": "MIT",
+    "installCommand": "npm install recaptcha-next"
+  },
+  "hero": {
+    "badge": "reCAPTCHA v3 · React 19 · Next.js",
+    "title": "reCAPTCHA v3 for Next.js, built for Server Actions.",
+    "lede": "A client field that keeps a fresh token in a hidden input, and a server function that checks it with Google. Typed results, one script per page, MIT licensed.",
+    "primary": {
+      "label": "Get started",
+      "href": "/docs/getting-started/"
+    },
+    "secondary": {
+      "label": "View on GitHub",
+      "href": "https://github.com/miguelcolmenares/recaptcha-next"
+    }
+  },
+  "features": [
+    {
+      "icon": "shield-check",
+      "eyebrow": "Server Actions",
+      "title": "Read the token from FormData",
+      "text": "The token travels in the form, so an action verifies it with getRecaptchaToken and verifyRecaptcha, and gets a typed result instead of an exception."
+    },
+    {
+      "icon": "zap",
+      "eyebrow": "Lazy loading",
+      "title": "Load Google only when needed",
+      "text": "With lazy, the script waits until the form is near the viewport, and tokens refresh before they expire."
+    },
+    {
+      "icon": "layers",
+      "eyebrow": "Navigation",
+      "title": "One script per page",
+      "text": "The script is loaded once and shared, also across client-side navigation, so Next.js routing never leaves duplicate badges."
+    },
+    {
+      "icon": "file-text",
+      "eyebrow": "Fails closed",
+      "title": "A missing secret is refused in production",
+      "text": "A deploy without RECAPTCHA_SECRET_KEY refuses every request instead of letting everyone in. Locally, the check is skipped with a warning."
+    }
+  ],
+  "nav": [],
+  "footer": {
+    "links": []
+  },
+  "sources": {
+    "root": "..",
+    "changelog": "../CHANGELOG.md"
+  },
+  "collections": [
+    {
+      "id": "docs",
+      "label": "Docs",
+      "dir": "../docs",
+      "groups": [
+        {
+          "name": "Start",
+          "tone": "brand",
+          "items": [
+            "getting-started"
+          ]
+        },
+        {
+          "name": "Guides",
+          "tone": "neutral",
+          "items": [
+            "server-actions",
+            "lazy-loading",
+            "navigation",
+            "custom-formdata",
+            "testing"
+          ]
+        },
+        {
+          "name": "Reference",
+          "tone": "success",
+          "items": [
+            "api-client",
+            "api-server"
+          ]
+        }
+      ],
+      "lede": "Guides and reference for recaptcha-next."
+    },
+    {
+      "id": "examples",
+      "label": "Examples",
+      "dir": "../examples",
+      "lede": "Forms you can copy and adapt."
+    }
+  ],
+  "deploy": {
+    "target": "github-pages",
+    "acknowledgePublicPages": false
+  },
+  "anonymize": {
+    "excludePaths": [],
+    "replace": {},
+    "denyPatterns": [],
+    "allow": []
+  }
+}

@@ -9,6 +9,8 @@ and a server function that checks the token with Google.
 - Fails closed in production when the secret key is missing.
 - ESM and CommonJS, full types, MIT license.
 
+Documentation: <https://miguelcolmenares.github.io/recaptcha-next/>
+
 ## Install
 
 ```bash
