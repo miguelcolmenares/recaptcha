@@ -41,10 +41,10 @@ export function useRecaptcha({
 
   useEffect(() => {
     if (!active || !siteKey) return;
-    const handle = loadRecaptcha(siteKey);
-    grecaptchaRef.current = handle.promise;
+    const pending = loadRecaptcha(siteKey);
+    grecaptchaRef.current = pending;
     let cancelled = false;
-    handle.promise.then(
+    pending.then(
       () => !cancelled && setState({ key: siteKey, status: "ready", error: null }),
       (error: unknown) =>
         !cancelled &&
@@ -57,7 +57,6 @@ export function useRecaptcha({
     return () => {
       cancelled = true;
       grecaptchaRef.current = null;
-      handle.release();
     };
   }, [active, siteKey]);
 

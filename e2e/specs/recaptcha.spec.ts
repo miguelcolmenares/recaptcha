@@ -1,30 +1,8 @@
 import { expect, test } from "@playwright/test";
-import type { Page } from "@playwright/test";
-
-const secretKey = process.env.RECAPTCHA_SECRET_KEY;
-const hasRealKeys = Boolean(process.env.NEXT_PUBLIC_RECAPTCHA_SITE_KEY && secretKey);
+import { hasRealKeys, result, stubGoogle, tokenInput } from "./support";
 
 // The stub echoes the site key the fixture was built with, so match the shape, not the key.
 const STUB_TOKEN = /^stub-token:.+:contact$/;
-const GOOGLE_SCRIPT = "https://www.google.com/recaptcha/api.js*";
-const tokenInput = (page: Page) => page.locator('input[name="g-recaptcha-response"]');
-const result = (page: Page) => page.getByTestId("result");
-
-/** Replace Google's script with a small stand-in, so these tests need no key and no network. */
-async function stubGoogle(page: Page) {
-  const requests: string[] = [];
-  await page.route(GOOGLE_SCRIPT, async (route) => {
-    requests.push(route.request().url());
-    await route.fulfill({
-      contentType: "application/javascript",
-      body: `window.grecaptcha = {
-        ready: function (cb) { cb(); },
-        execute: function (key, options) { return Promise.resolve("stub-token:" + key + ":" + options.action); }
-      };`,
-    });
-  });
-  return requests;
-}
 
 test.describe("with a stubbed Google script", () => {
   test("a Server Component can import the root entry", async ({ page }) => {

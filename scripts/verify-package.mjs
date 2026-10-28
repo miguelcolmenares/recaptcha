@@ -157,6 +157,64 @@ for (const file of CONFIG.serverEntriesWithoutReact) {
   });
 }
 
+// Load the installed package in plain Node, the way a consumer's server or test runner would,
+// and run it. A file can exist and still be unusable (bad "exports", missing chunk, code that
+// touches `window` on import), and only running it shows that.
+const SMOKE_BODY = `
+  assert.equal(root.DEFAULT_MIN_SCORE, 0.5);
+  assert.equal(root.evaluateResponse({ success: true, score: 0.9, action: "a", hostname: "h" }).success, true);
+  assert.deepEqual(await server.verifyRecaptcha(null), { success: false, reason: "missing-token" });
+  const form = new FormData();
+  form.set("g-recaptcha-response", "abc");
+  assert.equal(server.getRecaptchaToken(form), "abc");
+  const verify = server.createVerifyRecaptcha({
+    gateway: { verify: async () => ({ success: true, score: 0.2, action: "a", hostname: "h" }) },
+    getSecret: () => "secret",
+    isProduction: () => true,
+    warn() {},
+  });
+  assert.equal((await verify("token")).reason, "low-score");
+  assert.equal(typeof client.useRecaptcha, "function");
+  const html = renderToString(createElement(client.RecaptchaField, { action: "a", siteKey: "k" }));
+  assert.match(html, /name="g-recaptcha-response"/);
+`;
+const PKG = CONFIG.packageName;
+const SMOKE = {
+  "ESM import": {
+    args: ["--input-type=module", "-e"],
+    code: `
+      import assert from "node:assert/strict";
+      import { createElement } from "react";
+      import { renderToString } from "react-dom/server";
+      import * as root from "${PKG}";
+      import * as server from "${PKG}/server";
+      import * as client from "${PKG}/client";
+      ${SMOKE_BODY}`,
+  },
+  "CommonJS require": {
+    args: ["-e"],
+    code: `
+      (async () => {
+        const assert = require("node:assert/strict");
+        const { createElement } = require("react");
+        const { renderToString } = require("react-dom/server");
+        const root = require("${PKG}");
+        const server = require("${PKG}/server");
+        const client = require("${PKG}/client");
+        ${SMOKE_BODY}
+      })().catch((error) => { console.error(error); process.exit(1); });`,
+  },
+};
+for (const [name, { args, code }] of Object.entries(SMOKE)) {
+  check(`plain Node can use the installed package (${name})`, () => {
+    try {
+      run("node", [...args, code], { cwd: BUILD });
+    } catch (error) {
+      throw new Error(String(error.stderr || error.message).trim(), { cause: error });
+    }
+  });
+}
+
 console.log("4/5 Build the fixture app with Next.js");
 runLoud("npx", ["next", "build"], {
   cwd: BUILD,

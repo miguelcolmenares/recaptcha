@@ -58,6 +58,11 @@ Tests that need a real Google key skip themselves when the keys are missing.
 - A dev tool must not cap TypeScript in its peer range. One exception is documented in `.github/dependabot.yml`.
 - A callback prop must never restart an effect. Keep callbacks in refs.
 - Loading a script is not the same as the global being ready. Wait for `grecaptcha.ready`.
+- Never unload Google's script when a component unmounts. Tested with real Google: removing the tag and
+  loading it again after a client-side navigation left duplicate badges and extra scripts, and sometimes a
+  `window.grecaptcha` with no tag. A stubbed script hides this, so the navigation specs run against real Google too.
+- Errors that Google's own frames log in the console (for example `requestStorageAccess`) are not ours. The e2e
+  helper filters them by origin and by one exact message, nothing broader.
 - Release with npm trusted publishing (OIDC). No long-lived tokens.
 
 ## Commits

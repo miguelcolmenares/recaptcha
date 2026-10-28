@@ -4,7 +4,7 @@ Google reCAPTCHA v3 for React and Next.js. A client field that keeps a fresh tok
 and a server function that checks the token with Google.
 
 - Server Actions friendly: read the token from `FormData`, verify it, get a typed result.
-- No global state of its own on `window`. One shared script per site key, with reference counting.
+- One shared script per site key, loaded once and kept for the life of the page, also across client-side navigation.
 - Lazy loading: the Google script can wait until the form is near the viewport.
 - Fails closed in production when the secret key is missing.
 - ESM and CommonJS, full types, MIT license.
@@ -109,6 +109,14 @@ Outside production verification is skipped, with a clear warning in the logs, so
 
 `@miguelcolmenares/recaptcha` exports the constants, the result types and the pure `evaluateResponse` rule.
 It has no React and no browser code, so it is safe in Server Components.
+
+## Script lifetime
+
+The Google script is loaded the first time a field needs it and is **not** removed when the field unmounts.
+Google keeps its own state (the badge, iframes and extra scripts), and removing the tag does not reset it.
+Loading it again after a client-side navigation left duplicate badges, so it is loaded once per page.
+The badge therefore stays visible on pages that have no form after the first visit to one that does.
+If you want the badge hidden, follow Google's rules for showing the reCAPTCHA branding text instead.
 
 ## Custom `FormData`
 

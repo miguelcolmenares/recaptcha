@@ -17,47 +17,50 @@ function finishLoad(fake: ReturnType<typeof fakeGrecaptcha>) {
   scripts()[0]?.dispatchEvent(new Event("load"));
 }
 
-afterEach(async () => {
-  jest.useRealTimers();
-  await new Promise((resolve) => setTimeout(resolve, 0)); // let pending teardowns run
+// The loader keeps one promise per site key for the life of the page, so every test
+// uses a key of its own.
+let counter = 0;
+let key = "";
+
+beforeEach(() => {
+  key = `key-${++counter}`;
+});
+
+afterEach(() => {
   document.head.innerHTML = "";
-  document.body.innerHTML = "";
   delete window.grecaptcha;
 });
 
 describe("loadRecaptcha", () => {
   it("adds one script per site key, shared by concurrent callers", () => {
-    const a = loadRecaptcha("key-1");
-    const b = loadRecaptcha("key-1");
+    const a = loadRecaptcha(key);
+    const b = loadRecaptcha(key);
     expect(scripts()).toHaveLength(1);
-    expect(a.promise).toBe(b.promise);
+    expect(a).toBe(b);
     expect(scripts()[0]?.getAttribute("src")).toBe(
-      "https://www.google.com/recaptcha/api.js?render=key-1",
+      `https://www.google.com/recaptcha/api.js?render=${key}`,
     );
-    a.release();
-    b.release();
   });
 
   it("does not resolve on the load event alone, it waits for grecaptcha.ready", async () => {
     const fake = fakeGrecaptcha();
-    const handle = loadRecaptcha("key-ready");
+    const promise = loadRecaptcha(key);
     const onResolve = jest.fn();
-    void handle.promise.then(onResolve);
+    void promise.then(onResolve);
 
     finishLoad(fake);
     await Promise.resolve();
     expect(onResolve).not.toHaveBeenCalled();
 
     fake.fireReady();
-    await handle.promise;
+    await promise;
     expect(onResolve).toHaveBeenCalledWith(fake.api);
-    handle.release();
   });
 
   it("rejects every waiting caller when the script fails, then allows a retry", async () => {
-    const a = loadRecaptcha("key-fail");
-    const b = loadRecaptcha("key-fail");
-    const results = Promise.allSettled([a.promise, b.promise]);
+    const a = loadRecaptcha(key);
+    const b = loadRecaptcha(key);
+    const results = Promise.allSettled([a, b]);
 
     scripts()[0]?.dispatchEvent(new Event("error"));
     const settled = await results;
@@ -68,73 +71,45 @@ describe("loadRecaptcha", () => {
     );
     expect(scripts()).toHaveLength(0);
 
-    const retry = loadRecaptcha("key-fail");
+    const retry = loadRecaptcha(key);
     expect(scripts()).toHaveLength(1);
-    expect(retry.promise).not.toBe(a.promise);
-    retry.release();
+    expect(retry).not.toBe(a);
   });
 
-  it("rejects when the script loads but grecaptcha is missing", async () => {
-    const handle = loadRecaptcha("key-empty");
+  it("rejects when the script loads but grecaptcha is missing, then allows a retry", async () => {
+    const promise = loadRecaptcha(key);
     scripts()[0]?.dispatchEvent(new Event("load"));
-    await expect(handle.promise).rejects.toThrow("Failed to load reCAPTCHA script");
+    await expect(promise).rejects.toThrow("Failed to load reCAPTCHA script");
+    await Promise.resolve();
+    expect(loadRecaptcha(key)).not.toBe(promise);
   });
 
-  it("removes the script only after the last handle is released", async () => {
-    jest.useFakeTimers();
+  it("keeps the script and the promise for the life of the page", async () => {
     const fake = fakeGrecaptcha();
-    const a = loadRecaptcha("key-refs");
-    const b = loadRecaptcha("key-refs");
+    const first = loadRecaptcha(key);
     finishLoad(fake);
     fake.fireReady();
+    await first;
 
-    a.release();
-    jest.runAllTimers();
+    // A later caller, for example a form that mounts after a client-side navigation.
+    const second = loadRecaptcha(key);
+    expect(second).toBe(first);
     expect(scripts()).toHaveLength(1);
-
-    b.release();
-    b.release(); // releasing twice must not count twice
-    jest.runAllTimers();
-    expect(scripts()).toHaveLength(0);
-    expect(window.grecaptcha).toBeUndefined();
-  });
-
-  it("keeps the script when a new handle arrives right after the last release", () => {
-    jest.useFakeTimers();
-    const first = loadRecaptcha("key-strict");
-    first.release();
-    const second = loadRecaptcha("key-strict"); // Strict Mode style remount
-    jest.runAllTimers();
-    expect(scripts()).toHaveLength(1);
-    second.release();
-    jest.runAllTimers(); // leave no pending teardown behind for the next test
+    expect(window.grecaptcha).toBe(fake.api);
   });
 
   it("uses a grecaptcha that is already on the page and adds no script", async () => {
     const fake = fakeGrecaptcha();
     window.grecaptcha = fake.api;
-    const handle = loadRecaptcha("key-existing");
+    const promise = loadRecaptcha(key);
     fake.fireReady();
-    expect(await handle.promise).toBe(fake.api);
+    expect(await promise).toBe(fake.api);
     expect(scripts()).toHaveLength(0);
-    handle.release();
   });
-});
 
-describe("loadRecaptcha with two site keys", () => {
-  it("keeps window.grecaptcha while another key still owns a script", () => {
-    jest.useFakeTimers();
-    const a = loadRecaptcha("multi-a");
-    const b = loadRecaptcha("multi-b");
-    const fake = fakeGrecaptcha();
-    window.grecaptcha = fake.api;
-
-    a.release();
-    jest.runAllTimers();
-
-    expect(window.grecaptcha).toBe(fake.api);
-    b.release();
-    jest.runAllTimers();
-    expect(window.grecaptcha).toBeUndefined();
+  it("keeps a separate load for each site key", () => {
+    loadRecaptcha(`${key}-a`);
+    loadRecaptcha(`${key}-b`);
+    expect(scripts()).toHaveLength(2);
   });
 });

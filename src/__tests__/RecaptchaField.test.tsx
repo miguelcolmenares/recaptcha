@@ -47,9 +47,8 @@ beforeEach(() => {
   FakeIntersectionObserver.instances = [];
 });
 
-afterEach(async () => {
+afterEach(() => {
   jest.useRealTimers();
-  await new Promise((resolve) => setTimeout(resolve, 0)); // let the loader finish its teardown
   document.head.innerHTML = "";
   delete window.grecaptcha;
   delete (globalThis as { IntersectionObserver?: unknown }).IntersectionObserver;

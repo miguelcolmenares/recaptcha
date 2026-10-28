@@ -12,97 +12,54 @@ declare global {
   }
 }
 
-export interface ScriptHandle {
-  /** Resolves when `grecaptcha.ready` has fired, not only when the script tag has loaded. */
-  promise: Promise<Grecaptcha>;
-  /** Give back this handle. The script is removed after the last handle is released. */
-  release: () => void;
-}
-
-interface Entry {
-  promise: Promise<Grecaptcha>;
-  refs: number;
-  script: HTMLScriptElement | null;
-}
-
-const entries = new Map<string, Entry>();
-
 const LOAD_ERROR_MESSAGE = "Failed to load reCAPTCHA script";
+
+// One promise per site key, kept for the life of the page.
+//
+// The script is never removed. Google's script keeps state of its own (badge, iframes, extra
+// scripts), and removing our tag does not reset it. Tested against real Google: loading it again
+// after a client-side navigation left duplicate badges and extra scripts, and sometimes a global
+// with no script tag. Loading once, as a plain <script> in a layout would, avoids all of that.
+const loads = new Map<string, Promise<Grecaptcha>>();
 
 function whenReady(grecaptcha: Grecaptcha): Promise<Grecaptcha> {
   return new Promise((resolve) => grecaptcha.ready(() => resolve(grecaptcha)));
 }
 
-function removeBadge(): void {
-  document.querySelectorAll(".grecaptcha-badge").forEach((badge) => badge.parentElement?.remove());
-}
+function start(siteKey: string): Promise<Grecaptcha> {
+  // The page already has reCAPTCHA (loaded by someone else): use it.
+  if (window.grecaptcha?.ready) return whenReady(window.grecaptcha);
 
-function teardown(siteKey: string, entry: Entry): void {
-  // A new handle may have been taken while the teardown was waiting.
-  if (entry.refs > 0 || entries.get(siteKey) !== entry) return;
-  entries.delete(siteKey);
-  if (entry.script) {
-    entry.script.remove();
-    // window.grecaptcha is shared by every site key, so only clear it when no other
-    // key still owns a script.
-    const othersLoaded = [...entries.values()].some((other) => other.script);
-    if (!othersLoaded) {
-      delete window.grecaptcha;
-      removeBadge();
-    }
-  }
-}
-
-function createEntry(siteKey: string): Entry {
-  // The page already has reCAPTCHA (loaded by someone else): use it and own nothing.
-  if (window.grecaptcha?.ready) {
-    return { promise: whenReady(window.grecaptcha), refs: 0, script: null };
-  }
-
-  const script = document.createElement("script");
-  script.src = `${RECAPTCHA_SCRIPT_URL}?render=${encodeURIComponent(siteKey)}`;
-  script.async = true;
-
-  const promise = new Promise<Grecaptcha>((resolve, reject) => {
+  return new Promise<Grecaptcha>((resolve, reject) => {
+    const script = document.createElement("script");
+    script.src = `${RECAPTCHA_SCRIPT_URL}?render=${encodeURIComponent(siteKey)}`;
+    script.async = true;
     script.addEventListener("load", () => {
+      // The load event only says the file ran. `ready` says Google can answer.
       if (window.grecaptcha?.ready) resolve(whenReady(window.grecaptcha));
       else reject(new Error(LOAD_ERROR_MESSAGE));
     });
-    script.addEventListener("error", () => reject(new Error(LOAD_ERROR_MESSAGE)));
+    script.addEventListener("error", () => {
+      script.remove();
+      reject(new Error(LOAD_ERROR_MESSAGE));
+    });
+    document.head.appendChild(script);
   });
-
-  const entry: Entry = { promise, refs: 0, script };
-  // On failure drop the entry, so the next caller can try again. Every caller that is
-  // already waiting holds the same promise, so all of them see the rejection.
-  promise.catch(() => {
-    script.remove();
-    if (entries.get(siteKey) === entry) entries.delete(siteKey);
-  });
-
-  document.head.appendChild(script);
-  return entry;
 }
 
-/** Load reCAPTCHA once per site key, shared by every caller. Browser only. */
-export function loadRecaptcha(siteKey: string): ScriptHandle {
-  let entry = entries.get(siteKey);
-  if (!entry) {
-    entry = createEntry(siteKey);
-    entries.set(siteKey, entry);
-  }
-  entry.refs += 1;
+/**
+ * Load reCAPTCHA once per site key. Every caller gets the same promise, so concurrent callers
+ * share one script and all of them see the same failure. A failed load is forgotten, so the
+ * next call tries again. Browser only.
+ */
+export function loadRecaptcha(siteKey: string): Promise<Grecaptcha> {
+  const existing = loads.get(siteKey);
+  if (existing) return existing;
 
-  const owned = entry;
-  let released = false;
-  return {
-    promise: owned.promise,
-    release() {
-      if (released) return;
-      released = true;
-      owned.refs -= 1;
-      // React Strict Mode unmounts and mounts again right away. Wait one tick before
-      // removing the script, so that sequence does not download it twice.
-      if (owned.refs === 0) setTimeout(() => teardown(siteKey, owned), 0);
-    },
-  };
+  const promise = start(siteKey);
+  loads.set(siteKey, promise);
+  promise.catch(() => {
+    if (loads.get(siteKey) === promise) loads.delete(siteKey);
+  });
+  return promise;
 }
