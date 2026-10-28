@@ -24,7 +24,7 @@ const FIXTURE = join(ROOT, "e2e", "fixture");
 const BUILD = join(FIXTURE, ".build");
 
 const CONFIG = {
-  packageName: "@miguelcolmenares/recaptcha",
+  packageName: "recaptcha-next",
   subpaths: ["", "/client", "/server"],
   clientEntries: ["dist/client.js", "dist/client.cjs"],
   // Files that must never reach the browser bundle.

@@ -3,7 +3,7 @@ import tseslint from "typescript-eslint";
 import reactHooks from "eslint-plugin-react-hooks";
 
 export default tseslint.config(
-  { ignores: ["dist", "coverage", "test-results", "e2e/fixture/.build", "node_modules"] },
+  { ignores: ["site", "dist", "coverage", "test-results", "e2e/fixture/.build", "node_modules"] },
   js.configs.recommended,
   ...tseslint.configs.recommended,
   {

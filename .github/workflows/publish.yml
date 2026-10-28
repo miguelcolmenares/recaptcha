@@ -31,4 +31,41 @@ jobs:
       - run: npm test
       - run: npx playwright install --with-deps chromium
       - run: npm run test:e2e
-      - run: npm publish
+      # The first version of a package can be published by hand, so a tag that follows must not fail on it.
+      - name: Is this version already on npm?
+        id: published
+        run: |
+          name="$(node -p "require('./package.json').name")"
+          version="$(node -p "require('./package.json').version")"
+          if npm view "$name@$version" version >/dev/null 2>&1; then
+            echo "already=true" >> "$GITHUB_OUTPUT"
+            echo "::notice::$name@$version is already on npm, so there is nothing to publish."
+          fi
+      - if: steps.published.outputs.already != 'true'
+        run: npm publish
+
+  # The documentation site is rebuilt for each release, so it shows the version that was just published.
+  docs:
+    name: Build docs
+    needs: publish
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+      # Installs the site, builds it, checks it, and uploads the Pages artifact.
+      - uses: miguelcolmenares/docs-sitekit@v0.1.0
+        with:
+          version: 0.1.0
+
+  deploy-docs:
+    name: Deploy docs to GitHub Pages
+    needs: docs
+    runs-on: ubuntu-latest
+    permissions:
+      pages: write
+      id-token: write
+    environment:
+      name: github-pages
+      url: ${{ steps.deployment.outputs.page_url }}
+    steps:
+      - id: deployment
+        uses: actions/deploy-pages@368f82528645a54fb793d4d04e342629a3f51346 # v5.0.1

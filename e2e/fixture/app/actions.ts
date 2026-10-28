@@ -1,6 +1,6 @@
 "use server";
 
-import { getRecaptchaToken, verifyRecaptcha } from "@miguelcolmenares/recaptcha/server";
+import { getRecaptchaToken, verifyRecaptcha } from "recaptcha-next/server";
 
 export interface SubmitState {
   tokenReceived: boolean;

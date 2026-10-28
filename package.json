@@ -1,5 +1,5 @@
 {
-  "name": "@miguelcolmenares/recaptcha",
+  "name": "recaptcha-next",
   "version": "0.1.0",
   "description": "Google reCAPTCHA v3 for React and Next.js: client token generation and server-side verification.",
   "author": "Miguel Colmenares <me@miguelcolmenares.com>",
@@ -86,12 +86,12 @@
   ],
   "repository": {
     "type": "git",
-    "url": "git+https://github.com/miguelcolmenares/recaptcha.git"
+    "url": "git+https://github.com/miguelcolmenares/recaptcha-next.git"
   },
   "bugs": {
-    "url": "https://github.com/miguelcolmenares/recaptcha/issues"
+    "url": "https://github.com/miguelcolmenares/recaptcha-next/issues"
   },
-  "homepage": "https://github.com/miguelcolmenares/recaptcha#readme",
+  "homepage": "https://github.com/miguelcolmenares/recaptcha-next#readme",
   "publishConfig": {
     "access": "public",
     "provenance": true
