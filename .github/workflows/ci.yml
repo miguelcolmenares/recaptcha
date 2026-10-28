@@ -57,3 +57,16 @@ jobs:
           name: playwright-report
           path: playwright-report/
           retention-days: 7
+
+  tsdoc:
+    name: TSDoc syntax
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+      # Syntax only: it fails on malformed TSDoc, not on exports that have no comment yet.
+      - uses: miguelcolmenares/jsdoc-to-tsdoc@78f159f0774ab8d1532c8b14437676dd34d36f6c # v1.0.0
+        with:
+          command: check
+          syntax-only: "true"
+          version: "1.0.0"
+          node-version: "26"
