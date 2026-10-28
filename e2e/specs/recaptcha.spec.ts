@@ -1,0 +1,80 @@
+import { expect, test } from "@playwright/test";
+import type { Page } from "@playwright/test";
+
+// The fixture was built with this key (see scripts/verify-package.mjs).
+const siteKey = process.env.NEXT_PUBLIC_RECAPTCHA_SITE_KEY || "fixture-site-key";
+const secretKey = process.env.RECAPTCHA_SECRET_KEY;
+const hasRealKeys = Boolean(process.env.NEXT_PUBLIC_RECAPTCHA_SITE_KEY && secretKey);
+
+const GOOGLE_SCRIPT = "https://www.google.com/recaptcha/api.js*";
+const tokenInput = (page: Page) => page.locator('input[name="g-recaptcha-response"]');
+const result = (page: Page) => page.getByTestId("result");
+
+/** Replace Google's script with a small stand-in, so these tests need no key and no network. */
+async function stubGoogle(page: Page) {
+  const requests: string[] = [];
+  await page.route(GOOGLE_SCRIPT, async (route) => {
+    requests.push(route.request().url());
+    await route.fulfill({
+      contentType: "application/javascript",
+      body: `window.grecaptcha = {
+        ready: function (cb) { cb(); },
+        execute: function (key, options) { return Promise.resolve("stub-token:" + key + ":" + options.action); }
+      };`,
+    });
+  });
+  return requests;
+}
+
+test.describe("with a stubbed Google script", () => {
+  test("a Server Component can import the root entry", async ({ page }) => {
+    await stubGoogle(page);
+    await page.goto("/");
+    await expect(page.getByTestId("min-score")).toHaveText("0.5");
+  });
+
+  test("the token reaches the hidden input and then the Server Action", async ({ page }) => {
+    await stubGoogle(page);
+    await page.goto("/");
+
+    await expect(tokenInput(page)).toHaveValue(`stub-token:${siteKey}:contact`);
+    await page.getByRole("button", { name: "Send" }).click();
+
+    // A made-up token is never valid, but the server must have received it.
+    await expect(result(page)).toContainText('"tokenReceived":true');
+    await expect(result(page)).toContainText('"success":false');
+  });
+
+  test("lazy mode loads Google only after the form scrolls into view", async ({ page }) => {
+    const requests = await stubGoogle(page);
+    await page.goto("/lazy");
+    await page.waitForLoadState("networkidle");
+    expect(requests).toHaveLength(0);
+    await expect(tokenInput(page)).toHaveValue("");
+
+    await page.locator("form").scrollIntoViewIfNeeded();
+
+    await expect.poll(() => requests.length).toBe(1);
+    await expect(tokenInput(page)).toHaveValue(`stub-token:${siteKey}:contact`);
+  });
+});
+
+test.describe("with real Google keys", () => {
+  test.skip(!hasRealKeys, "Set NEXT_PUBLIC_RECAPTCHA_SITE_KEY and RECAPTCHA_SECRET_KEY to run.");
+
+  test("Google issues a token and the server accepts the exchange", async ({ page }) => {
+    await page.goto("/");
+    await expect(tokenInput(page)).not.toHaveValue("", { timeout: 20_000 });
+
+    await page.getByRole("button", { name: "Send" }).click();
+    await expect(result(page)).toContainText('"tokenReceived":true');
+
+    // Headless Chrome often gets a low score, so a low-score answer is fine here.
+    // What must not happen is Google rejecting the token or the request failing.
+    const text = (await result(page).textContent()) ?? "";
+    expect(text).not.toContain("rejected-by-google");
+    expect(text).not.toContain("request-failed");
+    expect(text).not.toContain("missing-secret");
+    expect(text).not.toContain("action-mismatch");
+  });
+});

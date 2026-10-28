@@ -12,7 +12,7 @@ export default defineConfig({
   sourcemap: true,
   target: "es2022",
   platform: "neutral",
-  external: ["react", "react/jsx-runtime"],
+  deps: { neverBundle: ["react", "react/jsx-runtime"] },
   // Keep the file names the "exports" map declares: .js for ESM, .cjs for CJS.
   fixedExtension: false,
 });
