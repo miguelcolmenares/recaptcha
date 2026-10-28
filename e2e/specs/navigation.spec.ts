@@ -150,15 +150,7 @@ for (const mode of ["stubbed", "real"] as const) {
       if (mode === "stubbed") {
         expect(text).toContain('"success":false'); // a made-up token is never valid
       } else {
-        // A low score is fine for headless Chrome. Google rejecting the token is not.
-        for (const bad of [
-          "rejected-by-google",
-          "request-failed",
-          "missing-secret",
-          "action-mismatch",
-        ]) {
-          expect(text).not.toContain(bad);
-        }
+        expect(text).toContain('"success":true');
       }
     });
   });

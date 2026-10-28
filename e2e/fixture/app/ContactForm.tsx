@@ -5,10 +5,16 @@ import { RecaptchaField } from "@miguelcolmenares/recaptcha/client";
 import { submitAction } from "./actions";
 import type { SubmitState } from "./actions";
 
-const initial: SubmitState = { tokenReceived: false, success: null, reason: null };
+export const initialState: SubmitState = {
+  tokenReceived: false,
+  success: null,
+  reason: null,
+  score: null,
+  hostname: null,
+};
 
 export function ContactForm({ lazy = false }: { lazy?: boolean }) {
-  const [state, formAction] = useActionState(submitAction, initial);
+  const [state, formAction] = useActionState(submitAction, initialState);
   return (
     <form action={formAction}>
       <input name="message" defaultValue="hello" />

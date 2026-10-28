@@ -47,12 +47,8 @@ test.describe("with real Google keys", () => {
     await page.getByRole("button", { name: "Send" }).click();
     await expect(result(page)).toContainText('"tokenReceived":true');
 
-    // Headless Chrome often gets a low score, so a low-score answer is fine here.
-    // What must not happen is Google rejecting the token or the request failing.
-    const text = (await result(page).textContent()) ?? "";
-    expect(text).not.toContain("rejected-by-google");
-    expect(text).not.toContain("request-failed");
-    expect(text).not.toContain("missing-secret");
-    expect(text).not.toContain("action-mismatch");
+    // The fixture accepts any score, so a real token must verify. Server Action coverage is in
+    // serverAction.spec.ts; this only checks that nothing failed.
+    await expect(result(page)).toContainText('"success":true');
   });
 });

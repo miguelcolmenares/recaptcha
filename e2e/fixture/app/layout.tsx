@@ -7,7 +7,7 @@ export default function RootLayout({ children }: { children: ReactNode }) {
       <body>
         <nav>
           <Link href="/">Home</Link> <Link href="/lazy">Lazy page</Link>{" "}
-          <Link href="/plain">Plain page</Link>
+          <Link href="/plain">Plain page</Link> <Link href="/programmatic">Programmatic</Link>
         </nav>
         {children}
       </body>
