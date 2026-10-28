@@ -1,4 +1,4 @@
-# @miguelcolmenares/recaptcha
+# recaptcha-next
 
 Google reCAPTCHA v3 for React and Next.js. A client field that keeps a fresh token in a hidden input,
 and a server function that checks the token with Google.
@@ -12,7 +12,7 @@ and a server function that checks the token with Google.
 ## Install
 
 ```bash
-npm install @miguelcolmenares/recaptcha
+npm install recaptcha-next
 ```
 
 Requires React 19 and Node 22 or newer. Create a reCAPTCHA **v3** key pair in the
@@ -32,7 +32,7 @@ Add the field to a form. It renders a hidden input named `g-recaptcha-response`.
 // app/ContactForm.tsx
 "use client";
 
-import { RecaptchaField } from "@miguelcolmenares/recaptcha/client";
+import { RecaptchaField } from "recaptcha-next/client";
 import { sendMessage } from "./actions";
 
 export function ContactForm() {
@@ -52,7 +52,7 @@ Verify the token in the Server Action, with the same `action` name.
 // app/actions.ts
 "use server";
 
-import { getRecaptchaToken, verifyRecaptcha } from "@miguelcolmenares/recaptcha/server";
+import { getRecaptchaToken, verifyRecaptcha } from "recaptcha-next/server";
 
 export async function sendMessage(formData: FormData) {
   const result = await verifyRecaptcha(getRecaptchaToken(formData), { expectedAction: "contact" });
@@ -65,7 +65,7 @@ export async function sendMessage(formData: FormData) {
 
 ## API
 
-### `@miguelcolmenares/recaptcha/client`
+### `recaptcha-next/client`
 
 `<RecaptchaField />` props:
 
@@ -83,7 +83,7 @@ export async function sendMessage(formData: FormData) {
 `useRecaptcha({ action, siteKey?, enabled? })` returns `{ status, error, execute }`.
 Use it to get a fresh token at submit time instead of keeping a hidden input.
 
-### `@miguelcolmenares/recaptcha/server`
+### `recaptcha-next/server`
 
 - `verifyRecaptcha(token, options?)` returns a `VerificationResult`, it does not throw.
   Options: `minScore` (default `0.5`), `expectedAction`, `expectedHostname`, `secret`, `remoteIp`.
@@ -107,7 +107,7 @@ Outside production verification is skipped, with a clear warning in the logs, so
 
 ### Root entry
 
-`@miguelcolmenares/recaptcha` exports the constants, the result types and the pure `evaluateResponse` rule.
+`recaptcha-next` exports the constants, the result types and the pure `evaluateResponse` rule.
 It has no React and no browser code, so it is safe in Server Components.
 
 ## Script lifetime

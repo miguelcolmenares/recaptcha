@@ -1,5 +1,5 @@
 // A Server Component importing the root entry: it must not drag client code in.
-import { DEFAULT_MIN_SCORE } from "@miguelcolmenares/recaptcha";
+import { DEFAULT_MIN_SCORE } from "recaptcha-next";
 import { ContactForm } from "./ContactForm";
 
 export default function Page() {

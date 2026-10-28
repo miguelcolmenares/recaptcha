@@ -2,7 +2,7 @@
 
 import { useState } from "react";
 import type { FormEvent } from "react";
-import { useRecaptcha } from "@miguelcolmenares/recaptcha/client";
+import { useRecaptcha } from "recaptcha-next/client";
 import { submitAction } from "../actions";
 import { initialState } from "../ContactForm";
 import type { SubmitState } from "../actions";

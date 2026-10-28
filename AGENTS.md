@@ -4,7 +4,7 @@ Context for any AI agent working in this repository.
 
 ## What this is
 
-`@miguelcolmenares/recaptcha`: reCAPTCHA v3 for React and Next.js, MIT. Written from scratch.
+`recaptcha-next`: reCAPTCHA v3 for React and Next.js, MIT. Written from scratch.
 Do not add code, text or configuration copied from other projects, and do not add dependencies on private packages.
 
 ## Layout (Domain-Driven Design, barrel exports)

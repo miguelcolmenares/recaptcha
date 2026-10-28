@@ -1,7 +1,7 @@
 "use client";
 
 import { useActionState } from "react";
-import { RecaptchaField } from "@miguelcolmenares/recaptcha/client";
+import { RecaptchaField } from "recaptcha-next/client";
 import { submitAction } from "./actions";
 import type { SubmitState } from "./actions";
 
