@@ -1,5 +1,5 @@
 import { useEffect, useRef, useState } from "react";
-import { RECAPTCHA_TOKEN_FIELD, TOKEN_REFRESH_MARGIN_MS, TOKEN_TTL_MS } from "../domain/constants";
+import { RECAPTCHA_TOKEN_FIELD, TOKEN_REFRESH_MARGIN_MS, TOKEN_TTL_MS } from "../domain";
 import { readSiteKey } from "./readSiteKey";
 import { useRecaptcha } from "./useRecaptcha";
 

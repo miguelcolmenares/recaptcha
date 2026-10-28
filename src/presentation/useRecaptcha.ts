@@ -1,4 +1,6 @@
 import { useCallback, useEffect, useRef, useState } from "react";
+// Deep import on purpose: the infrastructure barrel also exports the Google verify
+// gateway, which must not end up in the browser bundle.
 import { loadRecaptcha } from "../infrastructure/scriptLoader";
 import type { Grecaptcha } from "../infrastructure/scriptLoader";
 import { readSiteKey } from "./readSiteKey";

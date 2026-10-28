@@ -1,6 +1,6 @@
-import type { VerifyGateway } from "../application/verifyRecaptcha";
-import { RECAPTCHA_VERIFY_URL } from "../domain/constants";
-import type { RecaptchaVerifyResponse } from "../domain/types";
+import type { VerifyGateway } from "../application";
+import { RECAPTCHA_VERIFY_URL } from "../domain";
+import type { RecaptchaVerifyResponse } from "../domain";
 
 export interface GoogleVerifyGatewayOptions {
   /** Override for tests. Defaults to the real Google endpoint. */

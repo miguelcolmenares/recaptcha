@@ -4,7 +4,7 @@ Google reCAPTCHA v3 for React and Next.js. A client field that keeps a fresh tok
 and a server function that checks the token with Google.
 
 - Server Actions friendly: read the token from `FormData`, verify it, get a typed result.
-- No `window` globals. One shared script per site key, with reference counting.
+- No global state of its own on `window`. One shared script per site key, with reference counting.
 - Lazy loading: the Google script can wait until the form is near the viewport.
 - Fails closed in production when the secret key is missing.
 - ESM and CommonJS, full types, MIT license.

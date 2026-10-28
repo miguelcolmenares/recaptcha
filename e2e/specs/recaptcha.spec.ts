@@ -1,11 +1,11 @@
 import { expect, test } from "@playwright/test";
 import type { Page } from "@playwright/test";
 
-// The fixture was built with this key (see scripts/verify-package.mjs).
-const siteKey = process.env.NEXT_PUBLIC_RECAPTCHA_SITE_KEY || "fixture-site-key";
 const secretKey = process.env.RECAPTCHA_SECRET_KEY;
 const hasRealKeys = Boolean(process.env.NEXT_PUBLIC_RECAPTCHA_SITE_KEY && secretKey);
 
+// The stub echoes the site key the fixture was built with, so match the shape, not the key.
+const STUB_TOKEN = /^stub-token:.+:contact$/;
 const GOOGLE_SCRIPT = "https://www.google.com/recaptcha/api.js*";
 const tokenInput = (page: Page) => page.locator('input[name="g-recaptcha-response"]');
 const result = (page: Page) => page.getByTestId("result");
@@ -37,7 +37,7 @@ test.describe("with a stubbed Google script", () => {
     await stubGoogle(page);
     await page.goto("/");
 
-    await expect(tokenInput(page)).toHaveValue(`stub-token:${siteKey}:contact`);
+    await expect(tokenInput(page)).toHaveValue(STUB_TOKEN);
     await page.getByRole("button", { name: "Send" }).click();
 
     // A made-up token is never valid, but the server must have received it.
@@ -55,7 +55,7 @@ test.describe("with a stubbed Google script", () => {
     await page.locator("form").scrollIntoViewIfNeeded();
 
     await expect.poll(() => requests.length).toBe(1);
-    await expect(tokenInput(page)).toHaveValue(`stub-token:${siteKey}:contact`);
+    await expect(tokenInput(page)).toHaveValue(STUB_TOKEN);
   });
 });
 

@@ -1,5 +1,5 @@
-import { evaluateResponse } from "../domain/evaluateResponse";
-import type { RecaptchaVerifyResponse, VerificationResult, VerifyOptions } from "../domain/types";
+import { evaluateResponse } from "../domain";
+import type { RecaptchaVerifyResponse, VerificationResult, VerifyOptions } from "../domain";
 
 /** Port: how the use case talks to Google. The real adapter lives in infrastructure. */
 export interface VerifyGateway {

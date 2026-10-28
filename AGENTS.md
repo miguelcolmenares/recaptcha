@@ -9,7 +9,7 @@ Do not add code, text or configuration copied from other projects, and do not ad
 
 ## Layout (Domain-Driven Design, barrel exports)
 
-```
+```text
 src/
   domain/          pure rules, constants, types. No I/O, no React.
   application/     use cases and ports (interfaces). Depends on domain only.
@@ -26,7 +26,9 @@ scripts/           verify-package.mjs, the pack-and-install check
 ```
 
 Rules: dependencies point inward (presentation and infrastructure may import application and domain, never the
-reverse). Every folder has an `index.ts` that is the only import path other layers use.
+reverse). Every layer has an `index.ts`, and other layers import it, not its files. Two exceptions, both on purpose:
+`client.ts` and `server.ts` are composition roots and import files directly, and `presentation` imports
+`infrastructure/scriptLoader` directly so the server-only Google gateway stays out of the browser bundle.
 
 ## Naming
 
