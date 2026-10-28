@@ -1,3 +1,10 @@
 "use client";
-// Client entry. The loader, hook and component are added in the presentation layer.
-export * from "./domain/constants";
+
+export { RecaptchaField } from "./presentation/RecaptchaField";
+export type { RecaptchaFieldProps } from "./presentation/RecaptchaField";
+export { useRecaptcha } from "./presentation/useRecaptcha";
+export type {
+  RecaptchaStatus,
+  UseRecaptchaOptions,
+  UseRecaptchaResult,
+} from "./presentation/useRecaptcha";
