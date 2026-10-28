@@ -2,5 +2,10 @@ node_modules/
 dist/
 coverage/
 test-results/
+playwright-report/
 *.tgz
 .DS_Store
+.env
+.env.local
+.env.*.local
+e2e/fixture/.build/
