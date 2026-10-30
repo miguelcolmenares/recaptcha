@@ -2,7 +2,7 @@
   "site": {
     "name": "recaptcha-next",
     "description": "Google reCAPTCHA v3 for React and Next.js: client token generation and server-side verification.",
-    "url": "https://miguelcolmenares.github.io",
+    "url": "https://miguelcolmenares.com",
     "base": "/recaptcha-next/",
     "repository": "https://github.com/miguelcolmenares/recaptcha-next",
     "license": "MIT",
